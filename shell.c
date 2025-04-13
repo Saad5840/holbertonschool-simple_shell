@@ -23,7 +23,7 @@ int is_blank(const char *str)
 {
 	while (*str)
 	{
-		if (*str != ' ' && *str != '\t' && *str != '\n')
+		if (*str != ' ' && *str != '\t')
 			return (0);
 		str++;
 	}
@@ -49,7 +49,7 @@ int main(void)
 			write(STDOUT_FILENO, "#cisfun$ ", 9);
 
 		nread = getline(&line, &len, stdin);
-		if (nread == -1) /* Ctrl+D */
+		if (nread == -1)
 			break;
 
 		if (line[nread - 1] == '\n')
@@ -59,14 +59,10 @@ int main(void)
 			continue;
 
 		pid = fork();
-		if (pid == 0) /* child */
+		if (pid == 0)
 		{
-			char *argv[2];
-
-			argv[0] = line;
-			argv[1] = NULL;
-
-			if (execve(argv[0], argv, environ) == -1)
+			char *argv[] = { line, NULL };
+			if (execve(line, argv, environ) == -1)
 			{
 				perror("./shell");
 				exit(EXIT_FAILURE);
