@@ -1,21 +1,38 @@
 /*
  * File: shell.c
- * Auth: Saad Alarifi and Nasser Alqahtani
- * Description: A minimal UNIX command line interpreter.
+ * Author: Saad Alarifi and Nasser Alqahtani
+ * Description: A basic UNIX command line interpreter (simple_shell)
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/wait.h>
 #include <string.h>
-#include <sys/types.h>
+#include <sys/wait.h>
 #include <sys/stat.h>
+#include <ctype.h>
 
 extern char **environ;
 
 /**
- * main - Entry point for the simple shell
+ * is_blank - Check if a string is only whitespace
+ * @str: Input string
+ *
+ * Return: 1 if only whitespace, 0 otherwise
+ */
+int is_blank(const char *str)
+{
+	while (*str)
+	{
+		if (!isspace((unsigned char)*str))
+			return (0);
+		str++;
+	}
+	return (1);
+}
+
+/**
+ * main - Entry point of the shell
  *
  * Return: Always 0
  */
@@ -33,14 +50,13 @@ int main(void)
 			write(STDOUT_FILENO, "#cisfun$ ", 9);
 
 		nread = getline(&line, &len, stdin);
-		if (nread == -1) /* EOF (Ctrl+D) */
+		if (nread == -1) /* Ctrl+D */
 			break;
 
-		/* remove newline */
 		if (line[nread - 1] == '\n')
 			line[nread - 1] = '\0';
 
-		if (line[0] == '\0')
+		if (line[0] == '\0' || is_blank(line))
 			continue;
 
 		pid = fork();
@@ -63,7 +79,7 @@ int main(void)
 		}
 		else
 		{
-			wait(&status);
+			waitpid(pid, &status, 0);
 		}
 	}
 
