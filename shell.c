@@ -24,7 +24,7 @@ int is_blank(const char *str)
 {
 	while (*str)
 	{
-		if (!isspace((unsigned char)*str))
+		if (*str != ' ' && *str != '\t' && *str != '\n')
 			return (0);
 		str++;
 	}
