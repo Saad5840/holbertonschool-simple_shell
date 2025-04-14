@@ -1,9 +1,9 @@
 /*
  * File: shell.c
  * Author: Saad Alarifi and Nasser Alqahtani
- * Description: A simple UNIX command interpreter 
- *              that handles the PATH and implements the built-in exit command.
- *              The shell does not fork if the command doesn't exist.
+ * Description: A simple UNIX command interpreter
+ *              that handles the PATH and implements the built-in commands:
+ *              exit and env. The shell does not fork if the command doesn't exist.
  */
 
 #include <stdio.h>
@@ -58,7 +58,7 @@ char **parse_line(char *line)
  * @command: The command string (first token).
  *
  * If the command contains a slash, it is treated as an absolute or relative path.
- * Otherwise, the PATH is searched for an executable matching the command name.
+ * Otherwise, the PATH environment variable is searched for an executable matching the command name.
  *
  * Return: A malloc'd string with the full path if found, or NULL.
  */
@@ -148,32 +148,45 @@ int main(void)
             free(args);
             continue;
         }
-        
-        /* Handle the built-in exit command */
+
+        /* Built-in: exit */
         if (strcmp(args[0], "exit") == 0)
         {
             free(args);
             break;
         }
 
+        /* Built-in: env */
+        if (strcmp(args[0], "env") == 0)
+        {
+            int i = 0;
+            while (environ[i])
+            {
+                printf("%s\n", environ[i]);
+                i++;
+            }
+            free(args);
+            continue;
+        }
+
         /* Search for the command in PATH */
         cmd_path = get_cmd_path(args[0]);
         if (!cmd_path)
         {
-            fprintf(stderr, "./shell: 1: %s: not found\n", args[0]);
+            fprintf(stderr, "./simple_shell: 1: %s: not found\n", args[0]);
             free(args);
             continue;
         }
         /* Replace the command token with the full path */
         args[0] = cmd_path;
 
-        /* Fork and execute the command if it exists */
+        /* Fork and execute the command */
         pid = fork();
         if (pid == 0)
         {
             if (execve(cmd_path, args, environ) == -1)
             {
-                perror("./shell");
+                perror("./simple_shell");
                 exit(EXIT_FAILURE);
             }
         }
@@ -191,5 +204,5 @@ int main(void)
     }
 
     free(line);
-    return (0);
+    return 0;
 }
