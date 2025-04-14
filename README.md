@@ -68,5 +68,5 @@ To install and run the shell:
    git clone https://github.com/Saad5840/holbertonschool-simple_shell.git
 
 ## Authors
-Saad Alarifi
+Saad Alarifi,
 Nasser Alqahtani
