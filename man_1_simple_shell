@@ -1,0 +1,130 @@
+.TH SIMPLE_SHELL 1 "August 07, 2022" "Holberton School" "General Commands Manual"
+
+.SH NAME
+.B hsh\fR \- A simple command interpreter (simple_shell)
+
+.SH SYNOPSIS
+.B ./hsh
+[command] [option]
+.PP
+.B ./hsh\fR [options] [command] \| file
+.PP
+.B /bin/[command] [option]
+
+.SH DESCRIPTION
+.PP
+.B hsh\fR is a simple UNIX command line interpreter capable of executing commands interactively from
+the standard input or non-interactively from a file.
+.PP
+When invoked, hsh processes commands in a basic loop:
+.IP "1." 4
+Startup the shell.
+.IP "2." 4
+Display a prompt and wait for user input.
+.IP "3." 4
+Parse the input into tokens (the first token is the command and subsequent tokens are arguments).
+.IP "4." 4
+Search for the command:
+	- If the command begins with a slash (/) or dot (.), it is executed directly.
+	- Otherwise, hsh searches for the executable in the PATH environment variable.
+.IP "5." 4
+If the command is found, hsh forks a child process and executes it with execve(); if not, an error is printed.
+.IP "6." 4
+After executing the command, the shell displays the prompt again and awaits new input.
+.PP
+The shell terminates when the user types "exit" or sends an end-of-file (Ctrl+D).
+
+.SH INVOCATION
+.PP
+hsh can be invoked both interactively and non-interactively.
+.PP
+When standard input is connected to a terminal (determined by isatty(3)), an interactive shell is started and the prompt 
+"$(ಠ_ಠ)->$" is displayed. If standard input is not connected to a terminal, hsh reads commands sequentially from the input.
+.PP
+If command line arguments are provided upon invocation, hsh interprets the first argument as a file containing one command per line,
+executes each command in order, and then exits.
+
+.SH ENVIRONMENT
+.PP
+Upon invocation, hsh inherits and copies the environment of its parent process. This environment is an array of strings
+formatted as NAME=VALUE, and it is passed to execve() when executing commands.
+
+.SH COMMAND EXECUTION
+.PP
+After reading a command, hsh tokenizes it into words using spaces, tabs, or newline as delimiters. The first token is treated as the
+command; any remaining tokens are considered arguments.
+.PP
+The shell then performs the following actions:
+.IP "1." 4
+If the command does not start with a slash (/) or a dot (.), hsh first checks for a built-in command.
+.IP "2." 4
+If no built-in is found, hsh searches each directory listed in the PATH environment variable for an executable file matching the command name.
+.IP "3." 4
+If the command is found (or specified via an absolute or relative path), hsh creates a child process using fork(2) and executes
+the command with execve(2), passing the appropriate environment.
+.IP "4." 4
+If the command cannot be found, hsh prints an error message and displays the prompt again.
+.PP
+.B Exit Status:
+hsh returns the exit status of the last command executed. Builtin commands return 0 on success and 1 or 2 on error.
+
+.SH SIGNALS
+.PP
+While running interactively, hsh ignores the keyboard interrupt signal (Ctrl+C) so that the shell is not terminated unintentionally.
+An end-of-file input (Ctrl+D) will cause hsh to exit.
+
+.SH BUILTIN COMMANDS
+.PP
+The following built-in commands are supported:
+.TP
+.BR env
+List all environment variables.
+.TP
+.BR setenv " " [name] " " [value]
+Set or update the environment variable "name" with the specified "value".
+.TP
+.BR unsetenv " " [name]
+Remove the environment variable "name" from the environment.
+.TP
+.BR cd " " [dir_path]
+Change the current working directory to "dir_path".
+.TP
+.BR exit
+Exit the shell.
+
+.SH EXAMPLES
+.PP
+.B Interactive Mode:
+.IP
+       $ ./hsh
+.IP
+       $(ಠ_ಠ)->$ /bin/ls
+.IP
+       hsh  main.c  shell.c
+.IP
+       $(ಠ_ಠ)->$ exit
+.IP
+       $
+.PP
+.B Non-Interactive Mode:
+.IP
+       $ echo "/bin/ls" | ./hsh
+.IP
+       hsh  main.c  shell.c  test_ls_2
+.IP
+       $
+.IP
+       $ cat test_ls_2 | ./hsh
+.IP
+       hsh  main.c  shell.c  test_ls_2
+.IP
+       hsh  main.c  shell.c  test_ls_2
+.IP
+       $
+
+.SH AUTHORS
+Saad Alarifi  
+Nasser Alqahtani
+
+.EE
+

@@ -1,6 +1,3 @@
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![made-with-Markdown](https://img.shields.io/badge/Made%20with-Markdown-1f425f.svg)](http://commonmark.org)
-
 # Simple shell
 
 ![Simple shell](https://i.imgur.com/9m8edhj.jpg)
