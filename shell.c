@@ -18,7 +18,28 @@
 extern char **environ;
 
 /**
- * parse_line - Splits a line into tokens (command and arguments)
+ * my_getenv - Retrieves the value of an environment variable.
+ * @name: The name of the environment variable.
+ *
+ * Return: A pointer to the value string, or NULL if not found.
+ */
+char *my_getenv(const char *name)
+{
+    int i, len;
+
+    if (!name)
+        return NULL;
+    len = strlen(name);
+    for (i = 0; environ[i] != NULL; i++)
+    {
+        if (strncmp(environ[i], name, len) == 0 && environ[i][len] == '=')
+            return (environ[i] + len + 1);
+    }
+    return NULL;
+}
+
+/**
+ * parse_line - Splits a line into tokens (command and arguments).
  * @line: The input string from getline.
  *
  * Return: A NULL-terminated array of tokens.
@@ -60,7 +81,7 @@ char **parse_line(char *line)
  * @command: The command string (first token).
  *
  * If the command contains a slash, it is treated as an absolute or relative path.
- * Otherwise, the PATH is searched for an executable matching the command name.
+ * Otherwise, the PATH environment variable is searched for an executable matching the command name.
  *
  * Return: A malloc'd string with the full path if found, or NULL.
  */
@@ -78,8 +99,8 @@ char *get_cmd_path(char *command)
             return NULL;
     }
 
-    /* Get the PATH environment variable */
-    path_env = getenv("PATH");
+    /* Get PATH without using getenv */
+    path_env = my_getenv("PATH");
     if (!path_env)
         return NULL;
 
@@ -127,7 +148,7 @@ int main(void)
     char **args;
     char *cmd_path;
     pid_t pid;
-    int status = 0;  /* Initialize status to 0 */
+    int status = 0;
 
     while (1)
     {
@@ -151,7 +172,7 @@ int main(void)
             continue;
         }
 
-        /* Built-in: exit (no arguments handled) */
+        /* Built-in: exit (without handling arguments) */
         if (strcmp(args[0], "exit") == 0)
         {
             free(args);
@@ -179,10 +200,10 @@ int main(void)
             free(args);
             continue;
         }
-        /* Replace the command token with its full path */
+        /* Replace the command token with the full path */
         args[0] = cmd_path;
 
-        /* Fork and execute only if the command exists */
+        /* Fork and execute the command if it exists */
         pid = fork();
         if (pid == 0)
         {
