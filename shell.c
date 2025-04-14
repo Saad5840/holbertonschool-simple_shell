@@ -1,9 +1,11 @@
 /*
  * File: shell.c
  * Author: Saad Alarifi and Nasser Alqahtani
- * Description: A simple UNIX command interpreter
+ * Description: A simple UNIX command interpreter (simple_shell 0.4+)
  *              that handles the PATH and implements the built-in commands:
  *              exit and env. The shell does not fork if the command doesn't exist.
+ *              When "exit" is executed, the shell exits with the exit status of the last
+ *              executed command.
  */
 
 #include <stdio.h>
@@ -16,7 +18,7 @@
 extern char **environ;
 
 /**
- * parse_line - Splits a line into tokens (command and arguments).
+ * parse_line - Splits a line into tokens (command and arguments)
  * @line: The input string from getline.
  *
  * Return: A NULL-terminated array of tokens.
@@ -58,7 +60,7 @@ char **parse_line(char *line)
  * @command: The command string (first token).
  *
  * If the command contains a slash, it is treated as an absolute or relative path.
- * Otherwise, the PATH environment variable is searched for an executable matching the command name.
+ * Otherwise, the PATH is searched for an executable matching the command name.
  *
  * Return: A malloc'd string with the full path if found, or NULL.
  */
@@ -115,7 +117,7 @@ char *get_cmd_path(char *command)
 /**
  * main - Entry point of the shell.
  *
- * Return: 0 on success.
+ * Return: The exit status of the last executed command.
  */
 int main(void)
 {
@@ -125,7 +127,7 @@ int main(void)
     char **args;
     char *cmd_path;
     pid_t pid;
-    int status;
+    int status = 0;  /* Initialize status to 0 */
 
     while (1)
     {
@@ -134,7 +136,7 @@ int main(void)
             write(STDOUT_FILENO, ":) ", 3);
 
         nread = getline(&line, &len, stdin);
-        if (nread == -1) /* End-of-file (Ctrl+D) */
+        if (nread == -1)  /* End-of-file (Ctrl+D) */
             break;
         if (line[nread - 1] == '\n')
             line[nread - 1] = '\0';
@@ -149,7 +151,7 @@ int main(void)
             continue;
         }
 
-        /* Built-in: exit */
+        /* Built-in: exit (no arguments handled) */
         if (strcmp(args[0], "exit") == 0)
         {
             free(args);
@@ -173,20 +175,20 @@ int main(void)
         cmd_path = get_cmd_path(args[0]);
         if (!cmd_path)
         {
-            fprintf(stderr, "./simple_shell: 1: %s: not found\n", args[0]);
+            fprintf(stderr, "./hsh: 1: %s: not found\n", args[0]);
             free(args);
             continue;
         }
-        /* Replace the command token with the full path */
+        /* Replace the command token with its full path */
         args[0] = cmd_path;
 
-        /* Fork and execute the command */
+        /* Fork and execute only if the command exists */
         pid = fork();
         if (pid == 0)
         {
             if (execve(cmd_path, args, environ) == -1)
             {
-                perror("./simple_shell");
+                perror("./hsh");
                 exit(EXIT_FAILURE);
             }
         }
@@ -204,5 +206,6 @@ int main(void)
     }
 
     free(line);
-    return 0;
+    /* Exit with the status of the last executed command */
+    return (WIFEXITED(status) ? WEXITSTATUS(status) : status);
 }
