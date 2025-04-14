@@ -14,7 +14,7 @@
 extern char **environ;
 
 /**
- * is_blank - Check if a string is made up only of spaces or tabs
+ * is_blank - Check if a string is made up of only spaces or tabs
  * @str: Input string
  *
  * Return: 1 if only whitespace, 0 otherwise
@@ -45,12 +45,12 @@ int main(void)
 
 	while (1)
 	{
-		/* Display prompt if input is from terminal */
+		/* Display prompt if input is from a terminal */
 		if (isatty(STDIN_FILENO))
 			write(STDOUT_FILENO, "#cisfun$ ", 9);
 
 		nread = getline(&line, &len, stdin);
-		if (nread == -1) /* End of file (Ctrl+D) */
+		if (nread == -1) /* end-of-file (Ctrl+D) */
 			break;
 
 		/* Remove the trailing newline */
@@ -61,13 +61,14 @@ int main(void)
 		if (line[0] == '\0' || is_blank(line))
 			continue;
 
-		/* Fork a child to execute the command */
 		pid = fork();
 		if (pid == 0)
 		{
-			char *argv[] = { line, NULL };
+			/* Instead of static initializer, assign elements separately */
+			char *argv[2];
+			argv[0] = line;
+			argv[1] = NULL;
 
-			/* execve: execute the command, passing environ */
 			if (execve(line, argv, environ) == -1)
 			{
 				perror("./shell");
@@ -80,7 +81,6 @@ int main(void)
 		}
 		else
 		{
-			/* Wait for the child to complete */
 			waitpid(pid, &status, 0);
 		}
 	}
