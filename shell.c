@@ -1,7 +1,7 @@
 /*
  * File: shell.c
  * Author: Saad Alarifi and Nasser Alqahtani
- * Description: A simple UNIX command interpreter (simple_shell 0.4+)
+ * Description: A simple UNIX command interpreter
  *              that handles the PATH and implements the built-in commands:
  *              exit and env. The shell does not fork if the command doesn't exist.
  *              When "exit" is executed, the shell exits with the exit status of the last

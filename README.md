@@ -36,7 +36,9 @@ This table provides a brief overview of the core files in this project. Click on
 | [man_1_simple_shell](man_1_simple_shell) | Manual page for simple shell                                            | Contains the formatted manual (man page) for the shell.                |
 | [AUTHORS](AUTHORS)               | Contributor list                                                          | Lists all individuals who contributed to the project.                |
 | [shell.c](shell.c)               | Shell source code                                                         | Core implementation of the UNIX shell, including parsing and execution. |
-| [shell.h](shell.h) *(if present)*| Header file                                                               | Contains prototypes, macros, and external variable declarations.     |
+| [shell.h](shell.h)               | Header file                                                               | Contains prototypes, macros, and external variable declarations.     |
+| [parse.c](parse.c)               | Tokenizer functions                                                       | Implements functions to split the input string into tokens (command and arguments). |
+| [execute.c](execute.c)           | Command execution functions                                               | Contains functions for executing commands using fork and execve.          |
 
 ## System and Library Calls
 This project uses several system and library calls. Below is a summary with links to their manual pages:
