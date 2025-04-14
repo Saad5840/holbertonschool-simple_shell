@@ -5,7 +5,7 @@
  *              that handles the PATH and implements the built-in commands:
  *              exit and env. The shell does not fork if the command doesn't exist.
  *              When "exit" is executed, the shell exits with the exit status of the last
- *              executed command.
+ *              executed command. If a command is not found, the exit status is 127.
  */
 
 #include <stdio.h>
@@ -99,7 +99,7 @@ char *get_cmd_path(char *command)
             return NULL;
     }
 
-    /* Get PATH without using getenv */
+    /* Get PATH without using getenv directly */
     path_env = my_getenv("PATH");
     if (!path_env)
         return NULL;
@@ -148,7 +148,7 @@ int main(void)
     char **args;
     char *cmd_path;
     pid_t pid;
-    int status = 0;
+    int status = 0;  /* Last executed command's status */
 
     while (1)
     {
@@ -172,7 +172,7 @@ int main(void)
             continue;
         }
 
-        /* Built-in: exit (without handling arguments) */
+        /* Built-in: exit (no arguments handled) */
         if (strcmp(args[0], "exit") == 0)
         {
             free(args);
@@ -198,6 +198,7 @@ int main(void)
         {
             fprintf(stderr, "./hsh: 1: %s: not found\n", args[0]);
             free(args);
+            status = 127; /* Set exit status to 127 if command not found */
             continue;
         }
         /* Replace the command token with the full path */
