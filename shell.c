@@ -1,7 +1,8 @@
 /*
  * File: shell.c
  * Author: Saad Alarifi and Nasser Alqahtani
- * Description: A basic UNIX command line interpreter (simple_shell)
+ * Description: A basic UNIX command line interpreter (simple_shell 0.1+)
+ *              that handles command lines with arguments.
  */
 
 #include <stdio.h>
@@ -14,62 +15,89 @@
 extern char **environ;
 
 /**
- * is_blank - Check if a string is made up of only spaces or tabs
- * @str: Input string
+ * parse_line - Splits a line into tokens (words) delimited by spaces, tabs,
+ *              or newline characters.
+ * @line: The input string from getline.
  *
- * Return: 1 if only whitespace, 0 otherwise
+ * Return: A NULL-terminated array of tokens.
  */
-int is_blank(const char *str)
+char **parse_line(char *line)
 {
-	while (*str)
+	int bufsize = 64, pos = 0;
+	char **tokens = malloc(bufsize * sizeof(char *));
+	char *token;
+
+	if (!tokens)
 	{
-		if (*str != ' ' && *str != '\t')
-			return (0);
-		str++;
+		perror("allocation error");
+		exit(EXIT_FAILURE);
 	}
-	return (1);
+	token = strtok(line, " \t\r\n");
+	while (token != NULL)
+	{
+		tokens[pos] = token;
+		pos++;
+		if (pos >= bufsize)
+		{
+			bufsize += 64;
+			tokens = realloc(tokens, bufsize * sizeof(char *));
+			if (!tokens)
+			{
+				perror("allocation error");
+				exit(EXIT_FAILURE);
+			}
+		}
+		token = strtok(NULL, " \t\r\n");
+	}
+	tokens[pos] = NULL;
+	return (tokens);
 }
 
 /**
  * main - Entry point of the shell
  *
- * Return: Always 0
+ * Return: Always 0.
  */
 int main(void)
 {
 	char *line = NULL;
 	size_t len = 0;
 	ssize_t nread;
+	char **args;
 	pid_t pid;
 	int status;
 
 	while (1)
 	{
-		/* Display prompt if input is from a terminal */
+		/* Display prompt in interactive mode */
 		if (isatty(STDIN_FILENO))
 			write(STDOUT_FILENO, "#cisfun$ ", 9);
 
 		nread = getline(&line, &len, stdin);
-		if (nread == -1) /* end-of-file (Ctrl+D) */
+		if (nread == -1) /* End-of-file (Ctrl+D) */
 			break;
 
-		/* Remove the trailing newline */
+		/* Remove trailing newline, if any */
 		if (line[nread - 1] == '\n')
 			line[nread - 1] = '\0';
 
-		/* Skip empty or whitespace-only lines */
-		if (line[0] == '\0' || is_blank(line))
+		/* Skip empty lines */
+		if (line[0] == '\0')
 			continue;
+
+		/* Tokenize the input line into command & arguments */
+		args = parse_line(line);
+		if (args[0] == NULL)
+		{
+			free(args);
+			continue;
+		}
 
 		pid = fork();
 		if (pid == 0)
 		{
-			/* Instead of static initializer, assign elements separately */
-			char *argv[2];
-			argv[0] = line;
-			argv[1] = NULL;
-
-			if (execve(line, argv, environ) == -1)
+			/* Child process: execute the command */
+			if (execve(args[0], args, environ) == -1)
 			{
 				perror("./shell");
 				exit(EXIT_FAILURE);
@@ -81,8 +109,11 @@ int main(void)
 		}
 		else
 		{
+			/* Parent process: wait for child to finish */
 			waitpid(pid, &status, 0);
 		}
+
+		free(args);
 	}
 
 	free(line);
