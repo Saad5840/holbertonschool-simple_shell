@@ -2,8 +2,8 @@
  * File: shell.c
  * Author: Saad Alarifi and Nasser Alqahtani
  * Description: A simple UNIX command interpreter 
- *              that handles the PATH. fork() is not called if the command
- *              doesn't exist.
+ *              that handles the PATH and implements the built-in exit command.
+ *              The shell does not fork if the command doesn't exist.
  */
 
 #include <stdio.h>
@@ -16,8 +16,8 @@
 extern char **environ;
 
 /**
- * parse_line - Splits a line into tokens (command and arguments)
- * @line: The input string from getline
+ * parse_line - Splits a line into tokens (command and arguments).
+ * @line: The input string from getline.
  *
  * Return: A NULL-terminated array of tokens.
  */
@@ -55,7 +55,7 @@ char **parse_line(char *line)
 
 /**
  * get_cmd_path - Searches for the command in the PATH.
- * @command: The command string (first token)
+ * @command: The command string (first token).
  *
  * If the command contains a slash, it is treated as an absolute or relative path.
  * Otherwise, the PATH is searched for an executable matching the command name.
@@ -91,7 +91,6 @@ char *get_cmd_path(char *command)
     dir = strtok(path_copy, ":");
     while (dir != NULL)
     {
-        /* Construct candidate path: dir/command */
         len = strlen(dir) + 1 + strlen(command) + 1;
         full_path = malloc(len);
         if (!full_path)
@@ -149,6 +148,13 @@ int main(void)
             free(args);
             continue;
         }
+        
+        /* Handle the built-in exit command */
+        if (strcmp(args[0], "exit") == 0)
+        {
+            free(args);
+            break;
+        }
 
         /* Search for the command in PATH */
         cmd_path = get_cmd_path(args[0]);
@@ -158,10 +164,10 @@ int main(void)
             free(args);
             continue;
         }
-        /* Replace the command token with its full path */
+        /* Replace the command token with the full path */
         args[0] = cmd_path;
 
-        /* Fork only if the command exists */
+        /* Fork and execute the command if it exists */
         pid = fork();
         if (pid == 0)
         {
@@ -185,5 +191,5 @@ int main(void)
     }
 
     free(line);
-    return 0;
+    return (0);
 }
